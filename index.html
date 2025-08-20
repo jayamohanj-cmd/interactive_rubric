@@ -20,14 +20,6 @@
         .interactive-link {
             transition: all 0.2s ease-in-out;
         }
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-        .accordion-content.open {
-            max-height: 1000px; /* Set to a value larger than any possible content height */
-        }
         .modal-overlay {
             opacity: 0;
             visibility: hidden;
@@ -116,7 +108,36 @@
         <!-- Header Section -->
         <header class="text-center mb-10 md:mb-12">
             <h1 class="text-4xl md:text-5xl font-bold text-slate-900">My Independent Project Journey</h1>
-            <p class="mt-3 text-lg text-slate-600 max-w-3xl mx-auto">Select a level for each category to self-assess, then create a personalized roadmap for your project.</p>
+            <p class="mt-3 text-lg text-slate-600 max-w-3xl mx-auto">A self-assessment tool to help you plan your next steps.</p>
+            
+            <!-- Instructions Block -->
+            <div class="mt-8 max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-800 mb-4">How to Use This Tool</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0 h-10 w-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-lg">1</div>
+                        <div>
+                            <h3 class="font-semibold text-slate-700">Select Your Level</h3>
+                            <p class="text-sm text-slate-500">For each category, click the card that best describes your current progress.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0 h-10 w-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-lg">2</div>
+                        <div>
+                            <h3 class="font-semibold text-slate-700">Adjust Confidence</h3>
+                            <p class="text-sm text-slate-500">Use the slider to show how confident you feel about that category.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0 h-10 w-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-lg">3</div>
+                        <div>
+                            <h3 class="font-semibold text-slate-700">Create Roadmap</h3>
+                            <p class="text-sm text-slate-500">Click the button below to generate your personalized action plan.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="mt-8">
                 <button id="create-roadmap-btn" class="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:shadow-none" disabled>
                     Create My Roadmap
@@ -126,7 +147,7 @@
 
         <!-- Rubric Section -->
         <main>
-            <div id="rubric-container" class="space-y-4">
+            <div id="rubric-container" class="space-y-6">
                 <!-- Rubric content will be injected here by JavaScript -->
             </div>
         </main>
@@ -149,13 +170,13 @@
 
     <!-- Roadmap Modal Structure -->
     <div id="roadmap-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
-        <div class="modal-content relative bg-white w-full max-w-2xl rounded-xl shadow-2xl">
-            <div id="roadmap-print-area" class="p-6 md:p-8">
+        <div class="modal-content flex flex-col bg-white w-full max-w-2xl rounded-xl shadow-2xl max-h-[90vh]">
+            <div id="roadmap-print-area" class="p-6 md:p-8 overflow-y-auto">
                 <h3 class="text-3xl font-bold mb-2 text-slate-900">Your Project Roadmap</h3>
                 <p class="text-slate-600 mb-6">Here is your personalized plan based on your self-assessment. Use this as a guide for your next steps.</p>
                 <div id="roadmap-modal-body" class="space-y-6"></div>
             </div>
-            <div class="p-6 md:p-8 pt-0 md:pt-0 bg-slate-50 rounded-b-xl border-t border-slate-200 flex flex-col sm:flex-row gap-3">
+            <div class="flex-shrink-0 p-6 md:p-8 pt-0 md:pt-0 bg-slate-50 rounded-b-xl border-t border-slate-200 flex flex-col sm:flex-row gap-3">
                 <button id="print-roadmap-btn" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform active:scale-95">Print Roadmap</button>
                 <button class="modal-close-button w-full bg-white text-slate-700 font-semibold py-3 px-4 rounded-lg border border-slate-300 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform active:scale-95">Close</button>
             </div>
@@ -247,24 +268,20 @@
                 const helpLinkUrl = "https://taipeiamericanschool.padlet.org/jayamohanj3/art-making-ideas-and-inspiration-v8zybaqoajrcpm27";
 
                 rubricData.forEach((item, index) => {
-                    const isOpen = index === 0;
                     html += `
-                        <div class="accordion-item bg-white rounded-xl shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-lg" data-criterion="${item.criterion}">
-                            <div class="accordion-header w-full flex justify-between items-center p-6 cursor-pointer">
+                        <div class="rubric-section bg-white rounded-xl shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-lg" data-criterion="${item.criterion}">
+                            <div class="w-full flex justify-between items-center p-6">
                                 <div class="flex-1">
                                     <h2 class="text-2xl font-bold text-indigo-700">${item.criterion}</h2>
                                     <p class="text-sm text-slate-500 font-medium mt-1">${item.subtitle}</p>
                                 </div>
-                                <div class="flex items-center space-x-4 ml-4">
+                                <div class="flex items-center ml-4">
                                     <a href="${helpLinkUrl}" target="_blank" rel="noopener noreferrer" class="help-link flex items-center gap-2 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full py-2 px-4 transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                           <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
                                         </svg>
                                         <span class="hidden sm:inline">Need Help?</span>
                                     </a>
-                                    <svg class="accordion-chevron h-6 w-6 text-indigo-500 transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
                                 </div>
                             </div>
                             <div class="px-6 pb-4">
@@ -276,8 +293,7 @@
                                     <span>Very Confident</span>
                                 </div>
                             </div>
-                            <div class="accordion-content ${isOpen ? 'open' : ''}">
-                                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 p-6 pt-2">
+                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 p-6 pt-2">
                     `;
                     item.levels.forEach((level, levelIndex) => {
                         html += `
@@ -296,28 +312,10 @@
                     });
                     html += `
                                 </div>
-                            </div>
                         </div>
                     `;
                 });
                 rubricContainer.innerHTML = html;
-            }
-            
-            function setupAccordions() {
-                rubricContainer.addEventListener('click', e => {
-                    if (e.target.closest('.help-link') || e.target.closest('.confidence-slider')) {
-                        return; // Do not toggle accordion for these elements
-                    }
-                    const header = e.target.closest('.accordion-header');
-                    if (!header) return;
-
-                    const parentItem = header.closest('.accordion-item');
-                    const content = parentItem.querySelector('.accordion-content');
-                    const icon = header.querySelector('.accordion-chevron');
-                    
-                    content.classList.toggle('open');
-                    icon.classList.toggle('rotate-180');
-                });
             }
 
             function setupSelection() {
@@ -331,13 +329,13 @@
                     
                     e.stopPropagation(); 
 
-                    const parentAccordion = selectedCard.closest('.accordion-item');
-                    const criterion = parentAccordion.dataset.criterion;
+                    const parentSection = selectedCard.closest('.rubric-section');
+                    const criterion = parentSection.dataset.criterion;
                     const levelTitle = selectedCard.dataset.levelTitle;
                     const levelDescription = selectedCard.dataset.levelDescription;
                     const nextStep = selectedCard.dataset.nextStep;
                     
-                    const confidenceSlider = parentAccordion.querySelector('.confidence-slider');
+                    const confidenceSlider = parentSection.querySelector('.confidence-slider');
                     confidenceSlider.disabled = false;
                     
                     selections[criterion] = { 
@@ -347,8 +345,8 @@
                         confidence: confidenceSlider.value 
                     };
 
-                    const allCardsInCriterion = parentAccordion.querySelectorAll('.level-card');
-                    allCardsInCriterion.forEach(card => card.classList.remove('selected-card'));
+                    const allCardsInSection = parentSection.querySelectorAll('.level-card');
+                    allCardsInSection.forEach(card => card.classList.remove('selected-card'));
                     selectedCard.classList.add('selected-card');
 
                     createRoadmapBtn.disabled = false;
@@ -444,7 +442,6 @@
             
             // --- INITIALIZATION ---
             buildRubric();
-            setupAccordions();
             setupSelection();
             setupModals();
         });
