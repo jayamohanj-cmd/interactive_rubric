@@ -21,7 +21,15 @@
             font-family: 'Lexend', sans-serif;
         }
         .interactive-link {
+            font-weight: 600;
+            background-color: #e0e7ff; /* bg-indigo-100 */
+            border-radius: 0.25rem; /* rounded */
+            padding: 2px 6px;
+            cursor: pointer;
             transition: all 0.2s ease-in-out;
+        }
+        .interactive-link:hover {
+            background-color: #c7d2fe; /* bg-indigo-200 */
         }
         .modal-overlay {
             opacity: 0;
@@ -52,12 +60,12 @@
             box-shadow: 0 0 0 3px #4f46e5; /* Indigo-600 */
             border-color: #4f46e5 !important;
         }
-        .selected-card .checkmark-icon {
-            opacity: 1;
+        .selected-card .selection-indicator {
+            background-color: #4f46e5; /* indigo-600 */
+            border-color: #4f46e5; /* indigo-600 */
         }
-        .checkmark-icon {
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out;
+        .selected-card .checkmark {
+            opacity: 1;
         }
         /* Custom slider styles */
         input[type=range] {
@@ -191,12 +199,12 @@
 
     <!-- Mind Map Modal Structure -->
     <div id="mind-map-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
-        <div class="modal-content flex flex-col bg-white w-full max-w-4xl rounded-xl shadow-2xl max-h-[90vh]">
+        <div class="modal-content flex flex-col bg-white w-full max-w-5xl rounded-xl shadow-2xl max-h-[90vh]">
              <div class="p-6 md:p-8 border-b border-slate-200">
                 <h3 class="text-2xl font-bold text-slate-900">Your Project Mind Map</h3>
             </div>
             <div class="p-6 md:p-8 overflow-auto bg-slate-50/50 flex-grow">
-                <div id="mind-map-container" class="relative w-[1000px] h-[700px] mx-auto">
+                <div id="mind-map-container" class="relative w-[1200px] h-[800px] mx-auto">
                     <!-- Mind map will be generated here -->
                 </div>
             </div>
@@ -324,13 +332,13 @@
                                     <div class="level-card flex flex-col rounded-lg p-5 border ${levelColors[levelIndex]}" data-level-title="${level.title}" data-level-description="${level.description}" data-next-step="${level.nextStep}">
                                         <div class="flex justify-between items-start mb-2">
                                             <h4 class="text-lg font-bold ${levelTextColors[levelIndex]}">${level.title}</h4>
-                                            <div class="checkmark-icon text-indigo-600 bg-indigo-100 rounded-full h-6 w-6 flex items-center justify-center">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <div class="selection-indicator h-5 w-5 rounded-full border-2 border-slate-300 bg-slate-100 flex items-center justify-center transition-all duration-200">
+                                                 <svg class="checkmark h-3 w-3 text-white transition-opacity duration-200 opacity-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                                 </svg>
                                             </div>
                                         </div>
-                                        <p class="text-slate-700 text-base leading-relaxed">${level.description.replace(/class='interactive-link'/g, "class='interactive-link font-semibold bg-white/60 hover:bg-white rounded py-0.5 px-1.5 cursor-pointer'")}</p>
+                                        <p class="text-slate-700 text-base leading-relaxed">${level.description}</p>
                                     </div>
                         `;
                     });
@@ -342,38 +350,51 @@
                 rubricContainer.innerHTML = html;
             }
 
-            function setupSelection() {
+            function setupInteractions() {
+                const detailsModal = document.getElementById('details-modal');
+                const detailsModalTitle = document.getElementById('details-modal-title');
+                const detailsModalBody = document.getElementById('details-modal-body');
+                const openModal = (modal) => modal.classList.add('visible');
+
                 rubricContainer.addEventListener('click', e => {
-                    if (e.target.closest('.interactive-link')) {
+                    const link = e.target.closest('.interactive-link');
+                    if (link) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const modalId = link.dataset.modalId;
+                        const content = modalContent[modalId];
+                        if (content) {
+                            detailsModalTitle.textContent = content.title;
+                            detailsModalBody.innerHTML = content.body;
+                            openModal(detailsModal);
+                        }
                         return;
                     }
 
                     const selectedCard = e.target.closest('.level-card');
-                    if (!selectedCard) return;
-                    
-                    e.stopPropagation(); 
+                    if (selectedCard) {
+                        const parentSection = selectedCard.closest('.rubric-section');
+                        const criterion = parentSection.dataset.criterion;
+                        const levelTitle = selectedCard.dataset.levelTitle;
+                        const levelDescription = selectedCard.dataset.levelDescription;
+                        const nextStep = selectedCard.dataset.nextStep;
+                        
+                        const confidenceSlider = parentSection.querySelector('.confidence-slider');
+                        confidenceSlider.disabled = false;
+                        
+                        selections[criterion] = { 
+                            title: levelTitle, 
+                            description: levelDescription,
+                            nextStep: nextStep,
+                            confidence: confidenceSlider.value 
+                        };
 
-                    const parentSection = selectedCard.closest('.rubric-section');
-                    const criterion = parentSection.dataset.criterion;
-                    const levelTitle = selectedCard.dataset.levelTitle;
-                    const levelDescription = selectedCard.dataset.levelDescription;
-                    const nextStep = selectedCard.dataset.nextStep;
-                    
-                    const confidenceSlider = parentSection.querySelector('.confidence-slider');
-                    confidenceSlider.disabled = false;
-                    
-                    selections[criterion] = { 
-                        title: levelTitle, 
-                        description: levelDescription,
-                        nextStep: nextStep,
-                        confidence: confidenceSlider.value 
-                    };
+                        const allCardsInSection = parentSection.querySelectorAll('.level-card');
+                        allCardsInSection.forEach(card => card.classList.remove('selected-card'));
+                        selectedCard.classList.add('selected-card');
 
-                    const allCardsInSection = parentSection.querySelectorAll('.level-card');
-                    allCardsInSection.forEach(card => card.classList.remove('selected-card'));
-                    selectedCard.classList.add('selected-card');
-
-                    createRoadmapBtns.forEach(btn => btn.disabled = false);
+                        createRoadmapBtns.forEach(btn => btn.disabled = false);
+                    }
                 });
 
                 rubricContainer.addEventListener('input', e => {
@@ -387,29 +408,12 @@
             }
 
             function setupModals() {
-                const detailsModal = document.getElementById('details-modal');
                 const roadmapModal = document.getElementById('roadmap-modal');
                 const mindMapModal = document.getElementById('mind-map-modal');
+                const detailsModal = document.getElementById('details-modal');
 
                 const openModal = (modal) => modal.classList.add('visible');
                 const closeModal = (modal) => modal.classList.remove('visible');
-
-                // Details Modal Logic
-                const detailsModalTitle = document.getElementById('details-modal-title');
-                const detailsModalBody = document.getElementById('details-modal-body');
-                
-                rubricContainer.addEventListener('click', e => {
-                    const link = e.target.closest('.interactive-link');
-                    if (link) {
-                        const modalId = link.dataset.modalId;
-                        const content = modalContent[modalId];
-                        if (content) {
-                            detailsModalTitle.textContent = content.title;
-                            detailsModalBody.innerHTML = content.body;
-                            openModal(detailsModal);
-                        }
-                    }
-                });
 
                 // Roadmap Modal Logic
                 const roadmapModalBody = document.getElementById('roadmap-modal-body');
@@ -511,15 +515,18 @@
 
                         const node = document.createElement('div');
                         const bgColor = levelBgColors[selection.title] || 'bg-slate-100';
-                        node.className = `absolute p-4 rounded-lg shadow-md w-60 ${bgColor}`;
+                        node.className = `absolute p-4 rounded-lg shadow-md w-72 ${bgColor}`; // Increased width
                         node.style.top = positions[index].top;
                         node.style.left = positions[index].left;
                         node.style.transform = positions[index].transform;
                         
+                        const cleanDescription = selection.description.replace(/<span class='interactive-link'.*?>(.*?)<\/span>/g, '$1');
+
                         node.innerHTML = `
-                            <h4 class="font-bold text-slate-800">${item.criterion}</h4>
+                            <h4 class="font-bold text-slate-800">${item.criterion} <span class="font-normal text-sm text-slate-500">${item.subtitle}</span></h4>
                             <p class="text-sm font-semibold text-indigo-700 mt-1">${selection.title}</p>
-                            <p class="text-xs text-slate-600 mt-2 italic">"${selection.nextStep}"</p>
+                            <p class="text-xs text-slate-600 mt-2">${cleanDescription}</p>
+                            <p class="text-xs text-slate-800 mt-2 italic bg-white/50 p-1 rounded"><strong>Next Step:</strong> "${selection.nextStep}"</p>
                             <div class="text-xs mt-2 font-semibold text-slate-600">Confidence: <span class="font-normal text-indigo-600 bg-indigo-200/50 py-0.5 px-1.5 rounded-md">${confidenceLabels[selection.confidence]}</span></div>
                         `;
                         container.appendChild(node);
@@ -534,10 +541,10 @@
                         
                         let x2, y2;
                         switch(index) {
-                            case 0: x2 = '50%'; y2 = '12%'; break; 
-                            case 1: x2 = '88%'; y2 = '50%'; break; 
-                            case 2: x2 = '12%'; y2 = '50%'; break; 
-                            case 3: x2 = '50%'; y2 = '88%'; break;
+                            case 0: x2 = '50%'; y2 = '15%'; break; 
+                            case 1: x2 = '85%'; y2 = '50%'; break; 
+                            case 2: x2 = '15%'; y2 = '50%'; break; 
+                            case 3: x2 = '50%'; y2 = '85%'; break;
                         }
                         line.setAttribute('x2', x2);
                         line.setAttribute('y2', y2);
@@ -551,7 +558,7 @@
                     // Add Goal Node if text exists
                     if (reflectionText) {
                         const goalNode = document.createElement('div');
-                        goalNode.className = 'absolute p-4 rounded-lg shadow-md w-60 bg-fuchsia-100';
+                        goalNode.className = 'absolute p-4 rounded-lg shadow-md w-72 bg-fuchsia-100';
                         goalNode.style.top = '100%';
                         goalNode.style.left = '0%';
                         goalNode.style.transform = 'translateY(-100%)';
@@ -567,8 +574,8 @@
                         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                         line.setAttribute('x1', '50%');
                         line.setAttribute('y1', '50%');
-                        line.setAttribute('x2', '12%');
-                        line.setAttribute('y2', '88%');
+                        line.setAttribute('x2', '15%');
+                        line.setAttribute('y2', '85%');
                         line.setAttribute('stroke', '#cbd5e1');
                         line.setAttribute('stroke-width', '2');
                         svg.appendChild(line);
@@ -608,7 +615,7 @@
             
             // --- INITIALIZATION ---
             buildRubric();
-            setupSelection();
+            setupInteractions(); // Use the new unified interaction handler
             setupModals();
         });
     </script>
