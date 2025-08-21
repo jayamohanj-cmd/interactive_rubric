@@ -126,8 +126,14 @@
                 </div>
             </div>
 
+            <!-- Name Input -->
+            <div class="mt-8 max-w-md mx-auto">
+                 <label for="student-name" class="block text-sm font-medium text-slate-700 mb-1">Enter Your Name</label>
+                 <input type="text" id="student-name" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., Alex Doe">
+            </div>
+
             <div class="mt-8">
-                <button id="create-roadmap-btn" class="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:shadow-none" disabled>
+                <button class="create-roadmap-btn bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:shadow-none" disabled>
                     Create My Roadmap
                 </button>
             </div>
@@ -139,6 +145,13 @@
                 <!-- Rubric content will be injected here by JavaScript -->
             </div>
         </main>
+        
+        <!-- Bottom Button Section -->
+        <footer class="mt-12 text-center">
+            <button class="create-roadmap-btn bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:shadow-none" disabled>
+                Create My Roadmap
+            </button>
+        </footer>
 
     </div>
 
@@ -262,7 +275,7 @@
 
             // --- DOM ELEMENTS ---
             const rubricContainer = document.getElementById('rubric-container');
-            const createRoadmapBtn = document.getElementById('create-roadmap-btn');
+            const createRoadmapBtns = document.querySelectorAll('.create-roadmap-btn');
 
             // --- FUNCTIONS ---
             function buildRubric() {
@@ -360,7 +373,7 @@
                     allCardsInSection.forEach(card => card.classList.remove('selected-card'));
                     selectedCard.classList.add('selected-card');
 
-                    createRoadmapBtn.disabled = false;
+                    createRoadmapBtns.forEach(btn => btn.disabled = false);
                 });
 
                 rubricContainer.addEventListener('input', e => {
@@ -403,35 +416,37 @@
                 const downloadPdfBtn = document.getElementById('download-pdf-btn');
                 const viewMapBtn = document.getElementById('view-map-btn');
 
-                createRoadmapBtn.addEventListener('click', () => {
-                    let roadmapHTML = '';
-                    const levelTextColors = {'Exemplary': 'text-green-700', 'Proficient': 'text-blue-700', 'Developing': 'text-yellow-700', 'Beginning': 'text-red-700'};
-                    const confidenceLabels = { '1': 'Not Sure', '2': 'A Little Unsure', '3': 'Getting There', '4': 'Feeling Good', '5': 'Very Confident'};
+                createRoadmapBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        let roadmapHTML = '';
+                        const levelTextColors = {'Exemplary': 'text-green-700', 'Proficient': 'text-blue-700', 'Developing': 'text-yellow-700', 'Beginning': 'text-red-700'};
+                        const confidenceLabels = { '1': 'Not Sure', '2': 'A Little Unsure', '3': 'Getting There', '4': 'Feeling Good', '5': 'Very Confident'};
 
-                    for (const criterion in selections) {
-                        const selection = selections[criterion];
-                        const colorClass = levelTextColors[selection.title] || 'text-slate-700';
-                        roadmapHTML += `
-                            <div>
-                                <h4 class="text-xl font-bold text-slate-800">${criterion}</h4>
-                                <div class="mt-2 border-l-4 pl-4 border-slate-200">
-                                    <p class="font-semibold text-lg ${colorClass}">${selection.title}</p>
-                                    <p class="text-slate-600 mb-3">${selection.description.replace(/<span class='interactive-link'.*?>(.*?)<\/span>/g, '$1')}</p>
-                                    
-                                    <div class="mt-3 bg-indigo-50 border border-indigo-200 rounded-lg p-3">
-                                        <p class="font-bold text-sm text-indigo-800">Your Next Step:</p>
-                                        <p class="text-indigo-700">${selection.nextStep}</p>
-                                    </div>
+                        for (const criterion in selections) {
+                            const selection = selections[criterion];
+                            const colorClass = levelTextColors[selection.title] || 'text-slate-700';
+                            roadmapHTML += `
+                                <div>
+                                    <h4 class="text-xl font-bold text-slate-800">${criterion}</h4>
+                                    <div class="mt-2 border-l-4 pl-4 border-slate-200">
+                                        <p class="font-semibold text-lg ${colorClass}">${selection.title}</p>
+                                        <p class="text-slate-600 mb-3">${selection.description.replace(/<span class='interactive-link'.*?>(.*?)<\/span>/g, '$1')}</p>
+                                        
+                                        <div class="mt-3 bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+                                            <p class="font-bold text-sm text-indigo-800">Your Next Step:</p>
+                                            <p class="text-indigo-700">${selection.nextStep}</p>
+                                        </div>
 
-                                    <div class="mt-3">
-                                        <p class="font-semibold text-sm text-slate-600">Your Confidence: <span class="font-normal text-indigo-600 bg-indigo-100 py-1 px-2 rounded-md">${confidenceLabels[selection.confidence]}</span></p>
+                                        <div class="mt-3">
+                                            <p class="font-semibold text-sm text-slate-600">Your Confidence: <span class="font-normal text-indigo-600 bg-indigo-100 py-1 px-2 rounded-md">${confidenceLabels[selection.confidence]}</span></p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        `;
-                    }
-                    roadmapModalBody.innerHTML = roadmapHTML;
-                    openModal(roadmapModal);
+                            `;
+                        }
+                        roadmapModalBody.innerHTML = roadmapHTML;
+                        openModal(roadmapModal);
+                    });
                 });
                 
                 downloadPdfBtn.addEventListener('click', () => {
@@ -471,20 +486,23 @@
                 function generateMindMap() {
                     const container = document.getElementById('mind-map-container');
                     container.innerHTML = ''; // Clear previous map
+                    const studentNameValue = document.getElementById('student-name').value;
+                    const mindMapTitle = studentNameValue ? `${studentNameValue}'s Project Journey` : 'My Project Journey';
                     const confidenceLabels = { '1': 'Not Sure', '2': 'A Little Unsure', '3': 'Getting There', '4': 'Feeling Good', '5': 'Very Confident'};
                     const levelBgColors = {'Exemplary': 'bg-green-100', 'Proficient': 'bg-blue-100', 'Developing': 'bg-yellow-100', 'Beginning': 'bg-red-100'};
+                    const reflectionText = document.getElementById('reflection-text').value;
 
                     // Center Node
                     const centerNode = document.createElement('div');
                     centerNode.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-indigo-600 text-white p-6 rounded-full shadow-lg text-center flex items-center justify-center w-48 h-48';
-                    centerNode.innerHTML = `<h3 class="font-bold text-xl">My Project Journey</h3>`;
+                    centerNode.innerHTML = `<div class="flex flex-col"><h3 class="font-bold text-xl leading-tight">${mindMapTitle}</h3></div>`;
                     container.appendChild(centerNode);
 
                     const positions = [
-                        { top: '5%', left: '50%', transform: 'translateX(-50%)' },   // Top
-                        { top: '50%', left: '95%', transform: 'translate(-100%, -50%)' }, // Right
-                        { top: '95%', left: '50%', transform: 'translate(-50%, -100%)' }, // Bottom
-                        { top: '50%', left: '5%', transform: 'translateY(-50%)' }    // Left
+                        { top: '0%', left: '50%', transform: 'translateX(-50%)' },   // Top
+                        { top: '50%', left: '100%', transform: 'translate(-100%, -50%)' }, // Right
+                        { top: '50%', left: '0%', transform: 'translateY(-50%)' },    // Left
+                        { top: '100%', left: '50%', transform: 'translate(-50%, -100%)' } // Bottom
                     ];
 
                     rubricData.forEach((item, index) => {
@@ -493,7 +511,7 @@
 
                         const node = document.createElement('div');
                         const bgColor = levelBgColors[selection.title] || 'bg-slate-100';
-                        node.className = `absolute p-4 rounded-lg shadow-md w-64 ${bgColor}`;
+                        node.className = `absolute p-4 rounded-lg shadow-md w-60 ${bgColor}`;
                         node.style.top = positions[index].top;
                         node.style.left = positions[index].left;
                         node.style.transform = positions[index].transform;
@@ -506,9 +524,8 @@
                         `;
                         container.appendChild(node);
                         
-                        // Draw connecting line with SVG
                         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                        svg.setAttribute('class', 'absolute top-0 left-0 w-full h-full');
+                        svg.setAttribute('class', 'absolute top-0 left-0 w-full h-full -z-10');
                         svg.style.pointerEvents = 'none';
                         
                         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -517,19 +534,46 @@
                         
                         let x2, y2;
                         switch(index) {
-                            case 0: x2 = '50%'; y2 = '15%'; break; // Top
-                            case 1: x2 = '85%'; y2 = '50%'; break; // Right
-                            case 2: x2 = '50%'; y2 = '85%'; break; // Bottom
-                            case 3: x2 = '15%'; y2 = '50%'; break; // Left
+                            case 0: x2 = '50%'; y2 = '12%'; break; 
+                            case 1: x2 = '88%'; y2 = '50%'; break; 
+                            case 2: x2 = '12%'; y2 = '50%'; break; 
+                            case 3: x2 = '50%'; y2 = '88%'; break;
                         }
                         line.setAttribute('x2', x2);
                         line.setAttribute('y2', y2);
-                        line.setAttribute('stroke', '#cbd5e1'); // slate-300
+                        line.setAttribute('stroke', '#cbd5e1');
                         line.setAttribute('stroke-width', '2');
                         
                         svg.appendChild(line);
                         container.insertBefore(svg, centerNode);
                     });
+                    
+                    // Add Goal Node if text exists
+                    if (reflectionText) {
+                        const goalNode = document.createElement('div');
+                        goalNode.className = 'absolute p-4 rounded-lg shadow-md w-60 bg-fuchsia-100';
+                        goalNode.style.top = '100%';
+                        goalNode.style.left = '0%';
+                        goalNode.style.transform = 'translateY(-100%)';
+                        goalNode.innerHTML = `
+                            <h4 class="font-bold text-fuchsia-800">My Goal for This Week</h4>
+                            <p class="text-xs text-slate-600 mt-2 italic">"${reflectionText}"</p>
+                        `;
+                        container.appendChild(goalNode);
+                        
+                        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        svg.setAttribute('class', 'absolute top-0 left-0 w-full h-full -z-10');
+                        svg.style.pointerEvents = 'none';
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', '50%');
+                        line.setAttribute('y1', '50%');
+                        line.setAttribute('x2', '12%');
+                        line.setAttribute('y2', '88%');
+                        line.setAttribute('stroke', '#cbd5e1');
+                        line.setAttribute('stroke-width', '2');
+                        svg.appendChild(line);
+                        container.insertBefore(svg, centerNode);
+                    }
                 }
 
                 downloadMapBtn.addEventListener('click', () => {
