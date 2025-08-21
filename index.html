@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Rubric: My Independent Project Journey</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Library for PDF and Image Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@600;700&display=swap" rel="stylesheet">
@@ -84,21 +87,6 @@
         input[type=range]:disabled::-webkit-slider-thumb {
             background: #94a3b8; /* slate-400 */
         }
-
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            #roadmap-print-area, #roadmap-print-area * {
-                visibility: visible;
-            }
-            #roadmap-print-area {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-            }
-        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -171,14 +159,37 @@
     <!-- Roadmap Modal Structure -->
     <div id="roadmap-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
         <div class="modal-content flex flex-col bg-white w-full max-w-2xl rounded-xl shadow-2xl max-h-[90vh]">
-            <div id="roadmap-print-area" class="p-6 md:p-8 overflow-y-auto">
+            <div id="pdf-export-area" class="p-6 md:p-8 overflow-y-auto">
                 <h3 class="text-3xl font-bold mb-2 text-slate-900">Your Project Roadmap</h3>
                 <p class="text-slate-600 mb-6">Here is your personalized plan based on your self-assessment. Use this as a guide for your next steps.</p>
                 <div id="roadmap-modal-body" class="space-y-6"></div>
+                 <div class="mt-6">
+                    <label for="reflection-text" class="block text-lg font-bold text-slate-800 mb-2">My Goal for This Week</label>
+                    <textarea id="reflection-text" rows="4" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="After reviewing my roadmap, my main goal is to..."></textarea>
+                </div>
             </div>
-            <div class="flex-shrink-0 p-6 md:p-8 pt-0 md:pt-0 bg-slate-50 rounded-b-xl border-t border-slate-200 flex flex-col sm:flex-row gap-3">
-                <button id="print-roadmap-btn" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform active:scale-95">Print Roadmap</button>
-                <button class="modal-close-button w-full bg-white text-slate-700 font-semibold py-3 px-4 rounded-lg border border-slate-300 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform active:scale-95">Close</button>
+            <div class="flex-shrink-0 p-6 md:p-8 pt-4 bg-slate-50 rounded-b-xl border-t border-slate-200 flex flex-col sm:flex-row gap-3">
+                <button id="download-pdf-btn" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform active:scale-95">Download as PDF</button>
+                <button id="view-map-btn" class="w-full bg-white text-slate-700 font-semibold py-3 px-4 rounded-lg border border-slate-300 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform active:scale-95">View Mind Map</button>
+                <button class="modal-close-button w-full bg-white text-slate-700 font-semibold py-3 px-4 rounded-lg border border-slate-300 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform active:scale-95 sm:w-auto">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mind Map Modal Structure -->
+    <div id="mind-map-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+        <div class="modal-content flex flex-col bg-white w-full max-w-4xl rounded-xl shadow-2xl max-h-[90vh]">
+             <div class="p-6 md:p-8 border-b border-slate-200">
+                <h3 class="text-2xl font-bold text-slate-900">Your Project Mind Map</h3>
+            </div>
+            <div class="p-6 md:p-8 overflow-auto bg-slate-50/50 flex-grow">
+                <div id="mind-map-container" class="relative w-[1000px] h-[700px] mx-auto">
+                    <!-- Mind map will be generated here -->
+                </div>
+            </div>
+            <div class="flex-shrink-0 p-6 md:p-8 pt-4 bg-slate-50 rounded-b-xl border-t border-slate-200 flex justify-end gap-3">
+                <button id="download-map-btn" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform active:scale-95">Download as Image</button>
+                <button class="modal-close-button bg-white text-slate-700 font-semibold py-2 px-6 rounded-lg border border-slate-300 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform active:scale-95">Close</button>
             </div>
         </div>
     </div>
@@ -365,6 +376,7 @@
             function setupModals() {
                 const detailsModal = document.getElementById('details-modal');
                 const roadmapModal = document.getElementById('roadmap-modal');
+                const mindMapModal = document.getElementById('mind-map-modal');
 
                 const openModal = (modal) => modal.classList.add('visible');
                 const closeModal = (modal) => modal.classList.remove('visible');
@@ -388,7 +400,9 @@
 
                 // Roadmap Modal Logic
                 const roadmapModalBody = document.getElementById('roadmap-modal-body');
-                const printRoadmapBtn = document.getElementById('print-roadmap-btn');
+                const downloadPdfBtn = document.getElementById('download-pdf-btn');
+                const viewMapBtn = document.getElementById('view-map-btn');
+
                 createRoadmapBtn.addEventListener('click', () => {
                     let roadmapHTML = '';
                     const levelTextColors = {'Exemplary': 'text-green-700', 'Proficient': 'text-blue-700', 'Developing': 'text-yellow-700', 'Beginning': 'text-red-700'};
@@ -419,9 +433,117 @@
                     roadmapModalBody.innerHTML = roadmapHTML;
                     openModal(roadmapModal);
                 });
+                
+                downloadPdfBtn.addEventListener('click', () => {
+                    const element = document.getElementById('pdf-export-area');
+                    const reflectionText = document.getElementById('reflection-text').value;
+                    
+                    const reflectionElement = document.createElement('div');
+                    reflectionElement.className = 'mt-6';
+                    reflectionElement.innerHTML = `
+                        <h4 class="text-xl font-bold text-slate-800">My Goal for This Week</h4>
+                        <div class="mt-2 border-l-4 pl-4 border-slate-200">
+                           <p class="text-slate-600 whitespace-pre-wrap" style="font-family: 'Inter', sans-serif;">${reflectionText || 'No goal set.'}</p>
+                        </div>
+                    `;
+                    element.appendChild(reflectionElement);
 
-                printRoadmapBtn.addEventListener('click', () => {
-                    window.print();
+                    const opt = {
+                      margin:       0.5,
+                      filename:     'my-project-roadmap.pdf',
+                      image:        { type: 'jpeg', quality: 0.98 },
+                      html2canvas:  { scale: 2, useCORS: true },
+                      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                    };
+                    html2pdf().set(opt).from(element).save();
+
+                    element.removeChild(reflectionElement);
+                });
+
+                viewMapBtn.addEventListener('click', () => {
+                    generateMindMap();
+                    openModal(mindMapModal);
+                });
+
+                // Mind Map Generation
+                const downloadMapBtn = document.getElementById('download-map-btn');
+                
+                function generateMindMap() {
+                    const container = document.getElementById('mind-map-container');
+                    container.innerHTML = ''; // Clear previous map
+                    const confidenceLabels = { '1': 'Not Sure', '2': 'A Little Unsure', '3': 'Getting There', '4': 'Feeling Good', '5': 'Very Confident'};
+                    const levelBgColors = {'Exemplary': 'bg-green-100', 'Proficient': 'bg-blue-100', 'Developing': 'bg-yellow-100', 'Beginning': 'bg-red-100'};
+
+                    // Center Node
+                    const centerNode = document.createElement('div');
+                    centerNode.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-indigo-600 text-white p-6 rounded-full shadow-lg text-center flex items-center justify-center w-48 h-48';
+                    centerNode.innerHTML = `<h3 class="font-bold text-xl">My Project Journey</h3>`;
+                    container.appendChild(centerNode);
+
+                    const positions = [
+                        { top: '5%', left: '50%', transform: 'translateX(-50%)' },   // Top
+                        { top: '50%', left: '95%', transform: 'translate(-100%, -50%)' }, // Right
+                        { top: '95%', left: '50%', transform: 'translate(-50%, -100%)' }, // Bottom
+                        { top: '50%', left: '5%', transform: 'translateY(-50%)' }    // Left
+                    ];
+
+                    rubricData.forEach((item, index) => {
+                        const selection = selections[item.criterion];
+                        if (!selection) return;
+
+                        const node = document.createElement('div');
+                        const bgColor = levelBgColors[selection.title] || 'bg-slate-100';
+                        node.className = `absolute p-4 rounded-lg shadow-md w-64 ${bgColor}`;
+                        node.style.top = positions[index].top;
+                        node.style.left = positions[index].left;
+                        node.style.transform = positions[index].transform;
+                        
+                        node.innerHTML = `
+                            <h4 class="font-bold text-slate-800">${item.criterion}</h4>
+                            <p class="text-sm font-semibold text-indigo-700 mt-1">${selection.title}</p>
+                            <p class="text-xs text-slate-600 mt-2 italic">"${selection.nextStep}"</p>
+                            <div class="text-xs mt-2 font-semibold text-slate-600">Confidence: <span class="font-normal text-indigo-600 bg-indigo-200/50 py-0.5 px-1.5 rounded-md">${confidenceLabels[selection.confidence]}</span></div>
+                        `;
+                        container.appendChild(node);
+                        
+                        // Draw connecting line with SVG
+                        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        svg.setAttribute('class', 'absolute top-0 left-0 w-full h-full');
+                        svg.style.pointerEvents = 'none';
+                        
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', '50%');
+                        line.setAttribute('y1', '50%');
+                        
+                        let x2, y2;
+                        switch(index) {
+                            case 0: x2 = '50%'; y2 = '15%'; break; // Top
+                            case 1: x2 = '85%'; y2 = '50%'; break; // Right
+                            case 2: x2 = '50%'; y2 = '85%'; break; // Bottom
+                            case 3: x2 = '15%'; y2 = '50%'; break; // Left
+                        }
+                        line.setAttribute('x2', x2);
+                        line.setAttribute('y2', y2);
+                        line.setAttribute('stroke', '#cbd5e1'); // slate-300
+                        line.setAttribute('stroke-width', '2');
+                        
+                        svg.appendChild(line);
+                        container.insertBefore(svg, centerNode);
+                    });
+                }
+
+                downloadMapBtn.addEventListener('click', () => {
+                    const mapContainer = document.getElementById('mind-map-container');
+                    html2canvas(mapContainer, {
+                        backgroundColor: '#f8fafc', // slate-50
+                        scale: 2,
+                        useCORS: true
+                    }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = 'my-project-mind-map.png';
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    });
                 });
 
                 // Generic Modal Close Logic
